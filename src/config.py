@@ -3,43 +3,38 @@ from typing import Optional
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
-class TgSettings(BaseSettings):
-    model_config = SettingsConfigDict(
-        case_sensitive=False,
-        env_file=".env",
-        extra="ignore",
-    )
+class DBSettings(BaseSettings):
+    DB_USER: str
+    DB_PASSWORD: Optional[str] = None
+    DB_HOST: str
+    DB_PORT: Optional[str] = None
+    DB_NAME: str
 
-    bot_token: str
-
-
-class DataBaseSettings(BaseSettings):
-    model_config = SettingsConfigDict(
-        case_sensitive=False,
-        env_file=".env",
-        extra="ignore",
-    )
-
-    db_dialect: str
-    db_driver: str
-    db_user: str
-    db_password: Optional[str | None] = None
-    db_host: str
-    db_port: Optional[str | None] = None
-    db_name: str
+    # DATABASE_SQLITE = 'sqlite+aiosqlite:///data/db.sqlite3'
+    model_config = SettingsConfigDict(env_file=".env", extra="ignore")
 
     @property
-    def db_url(self) -> str:
-        link = f"{self.db_dialect}+{self.db_driver}://{self.db_user}"
-        if self.db_password:
-            link += f":{self.db_password}"
-        if self.db_port:
-            link += f"@{self.db_host}:{self.db_port}/{self.db_name}"
-        else:
-            link += f"@{self.db_host}/{self.db_name}"
+    def DB_URL(self):
+        url = f"postgresql+asyncpg://{self.DB_USER}"
+        if self.DB_PASSWORD:
+            url += f":{self.DB_PASSWORD}"
+        url += f"@{self.DB_HOST}"
+        if self.DB_HOST != "localhost" and self.DB_PORT:
+            url += f":{self.DB_PORT}"
+        url += f"/{self.DB_NAME}"
 
-        return link
+        return url
 
 
-tg_settings = TgSettings()
-db_settings = DataBaseSettings()
+class AezaSettings(BaseSettings):
+    AEZA_API_KEY: str
+
+    model_config = SettingsConfigDict(env_file=".env", extra="ignore")
+
+
+class Settings:
+    db = DBSettings()
+    aeza = AezaSettings()
+
+
+settings = Settings()
