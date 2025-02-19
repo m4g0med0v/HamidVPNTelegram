@@ -1,8 +1,14 @@
+from dataclasses import dataclass
 from typing import Optional
 
 import requests
-from moduls import AezaResponse
 from requests import Response
+
+
+@dataclass
+class AezaResponse:
+    status: str
+    context: str
 
 
 class Aeza:
@@ -18,7 +24,7 @@ class Aeza:
     def _check_response(self, response: Response) -> AezaResponse:
         """Проверка ответа сервера."""
         try:
-            response.raise_for_status()  # Выброс исключения, если статус 4xx/5xx
+            response.raise_for_status()
             return AezaResponse(status="ok", context=response.json())
         except requests.exceptions.JSONDecodeError:
             return AezaResponse(

@@ -7,10 +7,13 @@ from sqlalchemy.ext.asyncio import (
     async_sessionmaker,
     create_async_engine,
 )
+from src.models.bank import Bank
+from src.models.base import Base
+from src.models.journal import Journal
+from src.models.proxy import Proxy
+from src.models.user import User
 
-from config import settings
-
-from .models import Bank, Base, Journal, Proxy, User
+from .config import settings
 
 
 class BaseManager:
@@ -55,7 +58,7 @@ class UserManager(BaseManager):
 
     async def change_proxy_count(self, tg_id: int, count: int) -> None:
         """Изменяет количество прокси у пользователя."""
-        async with self.async_session() as session:
+        async with self.session_maker() as session:
             try:
                 result = await session.execute(
                     select(User).where(User.id == tg_id)
@@ -67,6 +70,13 @@ class UserManager(BaseManager):
             except SQLAlchemyError as e:
                 await session.rollback()
                 print(f"Ошибка при изменении количества прокси: {e}")
+
+    async def get_user_list(self) -> list[User]:
+        """Выдает список пользователей."""
+        async with self.session_maker() as session:
+            result = await session.execute(select(User))
+            users: list[User] | None = result.scalars().all()
+            return users
 
 
 class ProxyManager(BaseManager):
@@ -183,7 +193,7 @@ class AsyncORM:
         if cls._instance is None:
             cls._instance = super().__new__(cls)
             cls._instance._async_engine = create_async_engine(
-                url=settings.db.DB_URL, echo=False
+                url=settings.DB_URL, echo=False
             )
             cls._instance._async_session = async_sessionmaker(
                 bind=cls._instance._async_engine, expire_on_commit=False
@@ -207,3 +217,6 @@ class AsyncORM:
         """Удаляет все таблицы из базы данных."""
         async with self._async_engine.begin() as connection:
             await connection.run_sync(Base.metadata.drop_all)
+
+
+db = AsyncORM()

@@ -3,15 +3,16 @@ from typing import Optional
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
-class DBSettings(BaseSettings):
+class Settings(BaseSettings):
+    BOT_TOKEN: str
+    AEZA_TOKEN: str
     DB_USER: str
     DB_PASSWORD: Optional[str] = None
     DB_HOST: str
     DB_PORT: Optional[str] = None
     DB_NAME: str
 
-    # DATABASE_SQLITE = 'sqlite+aiosqlite:///data/db.sqlite3'
-    model_config = SettingsConfigDict(env_file=".env", extra="ignore")
+    model_config = SettingsConfigDict(env_file="../.env")
 
     @property
     def DB_URL(self):
@@ -24,17 +25,6 @@ class DBSettings(BaseSettings):
         url += f"/{self.DB_NAME}"
 
         return url
-
-
-class AezaSettings(BaseSettings):
-    AEZA_API_KEY: str
-
-    model_config = SettingsConfigDict(env_file=".env", extra="ignore")
-
-
-class Settings:
-    db = DBSettings()
-    aeza = AezaSettings()
 
 
 settings = Settings()
