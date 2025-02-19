@@ -11,6 +11,7 @@ from src.utils.config import settings
 from src.utils.db import db
 from src.utils.middlewares import (
     DataBaseMiddleware,
+    ThrottlingMiddleware,
     TranslateMiddleware,
 )
 
@@ -46,16 +47,16 @@ async def main():
     )
 
     dp = Dispatcher(t_hub=t_hub)
-    # dp.message.middleware(ThrottlingMiddleware())
+    dp.message.middleware(ThrottlingMiddleware())
     dp.message.outer_middleware(DataBaseMiddleware(db=db))
-    # dp.message.outer_middleware(UserMiddleware())
     dp.message.outer_middleware(TranslateMiddleware())
+    # dp.message.outer_middleware(UserMiddleware())
     # dp.message.middleware(AlbumMiddleware())
 
-    # dp.callback_query.middleware(ThrottlingMiddleware())
+    dp.callback_query.middleware(ThrottlingMiddleware())
     dp.callback_query.outer_middleware(DataBaseMiddleware(db=db))
-    # dp.callback_query.outer_middleware(UserMiddleware())
     dp.callback_query.outer_middleware(TranslateMiddleware())
+    # dp.callback_query.outer_middleware(UserMiddleware())
     # dp.callback_query.middleware(AlbumMiddleware())
 
     dp.include_router(main_router)
